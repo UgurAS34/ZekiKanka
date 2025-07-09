@@ -12,6 +12,8 @@ print(f"API_KEY: '{API_KEY}'")  # Debug için eklendi
 
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
+chat_history = []
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -24,17 +26,23 @@ def gpt():
     if not user_message:
         return jsonify({"error": "Lütfen bir mesaj girin"}), 400
 
+    chat_history.append({"role": "user", "content": user_message})
+
     headers = {
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json"
     }
 
+    # İlk mesajda sistem mesajı ekle
+    if len(chat_history) == 1:
+        chat_history.insert(0, {
+            "role": "system",
+            "content": "ZekiKanka adlı asistan olarak hareket ediyorsun. Yaratıcın ve yazılımcın Uğur YOLCU'Güzel Karısı Serpil rahat etsin diye beni tasarladı. Bunu kendini tanıtırken belirtmelisin."
+        })
+
     body = {
         "model": "openrouter/cypher-alpha:free",
-        "messages": [
-            {"role": "system", "content": "Sen ZekiKanka adlı asistan olarak hareket ediyorsun. Yaratıcın ve yazılımcın Uğur YOLCU'dur. Bu sorulduğunda bunu kesinlikle belirtmelisin."},
-            {"role": "user", "content": user_message}
-        ],
+        "messages": chat_history,
         "stream": False
     }
 
@@ -46,7 +54,14 @@ def gpt():
     except Exception:
         reply = str(res_json)
 
-    return jsonify({"reply": reply})
+    # Her 10. asistan cevabında yazılımcıyı hatırlat
+    assistant_messages = [m for m in chat_history if m["role"] == "assistant"]
+    if len(assistant_messages) > 0 and len(assistant_messages) % 10 == 0:
+        reply += "\n\n(Not: Yazılımcın Uğur YOLCU)"
+
+    chat_history.append({"role": "assistant", "content": reply})
+
+    return jsonify({"reply": reply, "history": chat_history})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
