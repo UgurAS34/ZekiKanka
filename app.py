@@ -8,6 +8,8 @@ load_dotenv()
 app = Flask(__name__)
 
 API_KEY = os.getenv("OPENROUTER_API_KEY")
+print(f"API_KEY: '{API_KEY}'")  # Debug için eklendi
+
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 @app.route("/")
