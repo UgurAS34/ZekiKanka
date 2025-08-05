@@ -41,9 +41,7 @@ def gpt():
         })
 
     body = {
-        "model": "openrouter/cypher-alpha:free",
-        "messages": chat_history,
-        "stream": False
+        "model": "openrouter/mistralai/mistral-7b-instruct:free"
     }
 
     response = requests.post(API_URL, headers=headers, json=body)
